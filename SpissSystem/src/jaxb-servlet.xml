@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<methods>
+	<method name="login" class="com.ss.spiss.biz.UserBiz">
+		<property>username</property>
+		<property>password</property>
+	</method>
+	<method name="register" class="com.ss.spiss.biz.UserBiz">
+		<property>username</property>
+		<property>password</property>
+		<property>email</property>
+	</method>
+
+	<method name="modifyPass" class="com.ss.spiss.biz.UserBiz">
+		<property>username</property>
+		<property>password</property>
+		<property>email</property>
+	</method>
+
+	<method name="getAllPlate" class="com.ss.spiss.biz.PlateBiz">
+	</method>
+
+	<method name="getPlateInfo" class="com.ss.spiss.biz.PlateBiz">
+		<property>plate_id</property>
+	</method>
+
+	<method name="findPostByPage" class="com.ss.spiss.biz.PostBiz">
+		<property>plate_id</property>
+		<property>page</property>
+		<property>size</property>
+	</method>
+
+	<method name="addPlate" class="com.ss.spiss.biz.PlateBiz">
+		<property>plate_name</property>
+		<property>plate_introduction</property>
+		<property>userm_id</property>
+	</method>
+
+	<method name="newPost" class="com.ss.spiss.biz.PostBiz">
+		<property>title</property>
+		<property>content</property>
+		<property>plate_id</property>
+		<property>userm_id</property>
+	</method>
+
+	<method name="setModerator" class="com.ss.spiss.biz.PlateBiz">
+		<property>plate_id</property>
+		<property>userm_id</property>
+	</method>
+	<method name="addReply" class="com.ss.spiss.biz.ReplyBiz">
+	<property>userm_id</property>
+	<property>post_id</property>
+	<property>replyContent</property>
+	</method>
+	
+	<method name="getRepliesByPage" class="com.ss.spiss.biz.ReplyBiz">
+	<property>post_id</property>
+	<property>page</property>
+	<property>size</property>
+	</method>
+	
+	<method name="faceLogin" class="com.ss.spiss.biz.UserBiz">
+	<property>username</property>
+	</method>
+	
+	<method name="addTwo" class="com.ss.spiss.biz.UserBiz">
+		<property>username</property>
+		<property>password</property>
+		<property>email</property>
+	</method> 
+</methods>

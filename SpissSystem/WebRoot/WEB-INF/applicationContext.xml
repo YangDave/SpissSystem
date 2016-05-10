@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="GBK"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-4.0.xsd 
+	http://www.springframework.org/schema/cache 
+	http://www.springframework.org/schema/cache/spring-cache-4.0.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+	<!-- 定义数据源Bean，使用C3P0数据源实现，并注入数据源的必要信息 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close" p:driverClass="com.mysql.jdbc.Driver"
+		p:jdbcUrl="jdbc:mysql://localhost:3306/spiss" p:user="root" p:password="ydw1989"
+		p:maxPoolSize="40" p:minPoolSize="2" p:initialPoolSize="2"    
+		p:maxIdleTime="30" />
+	<!-- 定义Hibernate的SessionFactory，SessionFactory需要依赖数据源，注入dataSource -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean"
+		p:dataSource-ref="dataSource">
+		<!-- mappingResources用来列出全部映射文件 -->
+		<property name="annotatedClasses">
+			<list>
+				<!-- 以下用来列出所有的PO类 -->
+				<value>com.ss.spiss.entity.User</value>
+				<value>com.ss.spiss.entity.Role</value>
+				<value>com.ss.spiss.entity.Privilege</value>
+				<value>com.ss.spiss.entity.UserMapping</value>
+				<value>com.ss.spiss.entity.Plate</value>
+				<value>com.ss.spiss.entity.Reply</value>
+				<value>com.ss.spiss.entity.Post</value>
+			</list>
+		</property>
+		<!-- 定义Hibernate SessionFactory的属性 -->
+		<property name="hibernateProperties">
+			<props>
+				<!-- 指定Hibernate的连接方言 -->
+				<prop key="hibernate.dialect">
+					org.hibernate.dialect.MySQL5InnoDBDialect
+				</prop>
+				<!--是否根据Hiberante映射创建数据表 -->
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.connection.autocommit">true</prop> 
+				<prop key="hibernate.use_sql_comments">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 定义Service组件，并将DAO组件注入Service组件 -->
+ 	<bean id="userBiz" class="com.ss.spiss.bizImpl.UserBizImpl" 
+		p:daoBundle-ref="daoBundle"/> 
+	<!-- 定义DAO组件，并将SessionFactory注入DAO组件 -->
+	
+	<bean id="plateBiz" class="com.ss.spiss.bizImpl.PlateBizImpl"
+	p:daoBundle-ref="daoBundle"></bean>
+	
+	<bean id="postBiz" class="com.ss.spiss.bizImpl.PostBizImpl"
+	p:daoBundle-ref="daoBundle"></bean>
+	<bean id="replyBiz" class="com.ss.spiss.bizImpl.ReplyBizImpl"
+	p:daoBundle-ref="daoBundle"></bean>
+	
+	<bean id="daoBundle" class="com.ss.spiss.daoImpl.DaoBundle"
+	p:userDao-ref="userDao" p:userMappingDao-ref="userMappingDao" p:plateDao-ref="plateDao"
+	p:postDao-ref="postDao" p:privilegeDao-ref="privilegeDao"
+	p:replyDao-ref="replyDao" p:roleDao-ref="roleDao" ></bean>
+	<bean id="userDao" class="com.ss.spiss.daoImpl.UserDaoImpl"
+		p:sessionFactory-ref="sessionFactory" />
+		
+	<bean id="plateDao" class="com.ss.spiss.daoImpl.PlateDaoImpl"
+	p:sessionFactory-ref="sessionFactory" />
+	
+	<bean id="postDao" class="com.ss.spiss.daoImpl.PostDaoImpl"
+	p:sessionFactory-ref="sessionFactory"/>	
+	
+	<bean id="privilegeDao" class="com.ss.spiss.daoImpl.PrivilegeDaoImpl"
+	p:sessionFactory-ref="sessionFactory"/>
+	
+	<bean id="replyDao" class="com.ss.spiss.daoImpl.ReplyDaoImpl"
+	p:sessionFactory-ref="sessionFactory"/>
+	
+	<bean id="roleDao" class="com.ss.spiss.daoImpl.RoleDaoImpl"
+	p:sessionFactory-ref="sessionFactory"/>
+	
+	<bean id="userMappingDao" class="com.ss.spiss.daoImpl.UserMappingDaoImpl"
+	p:sessionFactory-ref="sessionFactory"/>
+
+	<!-- 配置Hibernate的局部事务管理器，使用HibernateTransactionManager类 -->
+	<!-- 该类是PlatformTransactionManager接口针对采用Hibernate的特定实现类 -->
+	<!-- 配置HibernateTransactionManager需依赖注入SessionFactory -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager"
+		p:sessionFactory-ref="sessionFactory" />
+		
+	<bean id="jaxbReadXml" class="com.ss.spiss.jaxb.JaxbReadXml"></bean>	
+
+	<!-- 配置事务增强处理Bean,指定事务管理器 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="get*" propagation="REQUIRED" read-only="true" /><!--之前是NOT_SUPPORT -->
+			<tx:method name="find*" propagation="REQUIRED"  read-only="true" /><!--之前是NOT_SUPPORT -->
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<!--默认其他方法都是REQUIRED -->
+			<tx:method name="*" propagation="REQUIRED"/>  
+		</tx:attributes>
+	</tx:advice>
+	<!-- AOP配置的元素 -->
+	<aop:config>
+		<!-- 配置一个切入点 -->
+		<aop:pointcut id="myPointcut" expression="execution(* com.ss.spiss.bizImpl.*.*(..))" />
+		<!-- 指定在myPointcut切入点应用txAdvice事务增强处理 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="myPointcut" />
+	</aop:config>
+	
+		<cache:annotation-driven cache-manager="cacheManager" />
+
+	<!-- 配置EhCache的CacheManager
+	通过configLocation指定ehcache.xml文件的位置 -->
+	<bean id="ehCacheManager"
+		class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
+		p:configLocation="classpath:ehcache.xml"
+		p:shared="false" />
+	<!-- 配置基于EhCache的缓存管理器
+	并将EhCache的CacheManager注入该缓存管理器Bean -->
+	<bean id="cacheManager"
+		class="org.springframework.cache.ehcache.EhCacheCacheManager"
+		p:cacheManager-ref="ehCacheManager" > 
+	</bean>
+	
+	
+	
+
+</beans>
